@@ -47,7 +47,7 @@ python3 setup.py install
 Installing this plugin adds support for the Fantom ecosystem:
 
 ```bash
-ape console --network arbitrum:opera
+ape console --network arbitrum:mainnet
 ```
 
 ## Development
