@@ -4,7 +4,7 @@ from ape.api.networks import LOCAL_NETWORK_NAME
 from ape_geth import GethProvider
 from ape_test import LocalProvider
 
-from .ecosystem import NETWORKS, Arbitrum, FantomConfig
+from .ecosystem import NETWORKS, Arbitrum, ArbitrumConfig
 
 
 @plugins.register(plugins.Config)

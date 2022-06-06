@@ -5,7 +5,7 @@ To get started with working on the codebase, use the following steps prepare you
 ```bash
 # clone the github repo and navigate into the folder
 git clone https://github.com/ApeWorX/ape-arbitrum.git
-cd ape-fantom
+cd ape-arbitrum
 
 # create and load a virtual environment
 python3 -m venv venv

@@ -38,13 +38,13 @@ You can clone the repository and use [`setuptools`](https://github.com/pypa/setu
 
 ```bash
 git clone https://github.com/ApeWorX/ape-arbitrum.git
-cd ape-fantom
+cd ape-arbitrum
 python3 setup.py install
 ```
 
 ## Quick Usage
 
-Installing this plugin adds support for the Fantom ecosystem:
+Installing this plugin adds support for the Arbitrum ecosystem:
 
 ```bash
 ape console --network arbitrum:mainnet
