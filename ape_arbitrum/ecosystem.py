@@ -4,7 +4,8 @@ from ape_ethereum.ecosystem import Ethereum, NetworkConfig
 
 NETWORKS = {
     # chain_id, network_id
-    "mainnet": (42161, 42161)
+    "mainnet": (42161, 42161),
+    "testnet": (421611, 421611),
 }
 
 
