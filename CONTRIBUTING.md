@@ -11,7 +11,10 @@ cd ape-arbitrum
 python3 -m venv venv
 source venv/bin/activate
 
-# install brownie into the virtual environment
+# install ape
+pip install eth-ape
+
+# install the plugin
 python setup.py install
 
 # install the developer dependencies (-e is interactive mode)
