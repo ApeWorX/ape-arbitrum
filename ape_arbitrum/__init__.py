@@ -24,7 +24,7 @@ def networks():
 
     # NOTE: This works for development providers, as they get chain_id from themselves
     yield "arbitrum", LOCAL_NETWORK_NAME, NetworkAPI
-    yield "arbitrum", "arbitrum-fork", NetworkAPI
+    yield "arbitrum", "mainnet-fork", NetworkAPI
 
 
 @plugins.register(plugins.ProviderPlugin)
