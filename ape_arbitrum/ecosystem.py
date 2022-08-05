@@ -1,17 +1,10 @@
-from ape.api.config import PluginConfig
-from ape.api.networks import LOCAL_NETWORK_NAME
-from ape_ethereum.ecosystem import Ethereum, NetworkConfig
 from ape.api import TransactionAPI
-from eth_utils import (
-    add_0x_prefix,
-    decode_hex,
-)
-from eth_typing import HexStr
-from ape_ethereum.transactions import (
-    StaticFeeTransaction,
-    TransactionType,
-)
+from ape.api.config import PluginConfig
 from ape.types import TransactionSignature
+from ape_ethereum.ecosystem import Ethereum, NetworkConfig
+from ape_ethereum.transactions import StaticFeeTransaction, TransactionType
+from eth_typing import HexStr
+from eth_utils import add_0x_prefix, decode_hex
 
 NETWORKS = {
     # chain_id, network_id
