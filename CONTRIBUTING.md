@@ -14,11 +14,11 @@ source venv/bin/activate
 # install ape
 pip install eth-ape
 
-# install the plugin
+# install the ape-arbitrum plugin
 python setup.py install
 
 # install the developer dependencies (-e is interactive mode)
-pip install -e .[dev]
+pip install -e .'[dev]'
 ```
 
 ## Pre-Commit Hooks
