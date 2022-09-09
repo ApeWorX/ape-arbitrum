@@ -1,22 +1,17 @@
+import ape
 import pytest
 
 
 @pytest.fixture
 def networks():
-    from ape import networks
-
-    return networks
+    return ape.networks
 
 
 @pytest.fixture
 def accounts():
-    from ape import accounts
-
-    return accounts
+    return ape.accounts
 
 
 @pytest.fixture
 def Contract():
-    from ape import Contract
-
-    return Contract
+    return ape.Contract
