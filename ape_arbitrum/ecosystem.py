@@ -37,6 +37,10 @@ class Arbitrum(Ethereum):
     def create_transaction(self, **kwargs) -> TransactionAPI:
         """
         Returns a transaction using the given constructor kwargs.
+        Overridden because does not support
+
+        **kwargs: Kwargs for the transaction class.
+
         Returns:
             :class:`~ape.api.transactions.TransactionAPI`
         """
