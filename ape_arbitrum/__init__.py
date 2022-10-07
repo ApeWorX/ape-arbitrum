@@ -27,7 +27,6 @@ def networks():
     yield "arbitrum", LOCAL_NETWORK_NAME, NetworkAPI
 
 
-
 @plugins.register(plugins.ProviderPlugin)
 def providers():
     for network_name in NETWORKS:
