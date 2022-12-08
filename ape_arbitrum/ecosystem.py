@@ -80,7 +80,7 @@ class Arbitrum(Ethereum):
             kwargs["chainId"] = int(kwargs["chainId"], 16)
 
         if "input" in kwargs:
-            kwargs["data"] = decode_hex(kwargs.pop("input"))
+            kwargs["data"] = decode_hex(kwargs.pop("input").hex())
 
         if all(field in kwargs for field in ("v", "r", "s")):
             kwargs["signature"] = TransactionSignature(  # type: ignore
