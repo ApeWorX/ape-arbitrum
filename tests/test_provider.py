@@ -8,8 +8,10 @@ def test_basic(accounts, networks):
 
 
 def test_receipt(accounts, networks):
-    with networks.arbitrum.mainnet.use_provider("alchemy"):
+    with networks.arbitrum.local.use_provider("test"):
+        transfer = accounts.test_accounts[0].transfer(accounts.test_accounts[1],1)
+        assert transfer.txn_hash
         tx = networks.provider.get_receipt(
-            "0x1c38688523bf47921fef5551451fefa6e2e5d77991ea674d572f02d72dda4dc7"
+            transfer.txn_hash
         )
-        assert tx
+        assert tx.data.hex()
