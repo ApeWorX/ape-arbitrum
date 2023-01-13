@@ -113,7 +113,7 @@ def _get_transaction_type(_type: Optional[Union[int, str, bytes]]) -> Transactio
 def _get_transaction_cls(transaction_type: TransactionType) -> Type[TransactionAPI]:
     transaction_types = {
         TransactionType.STATIC: StaticFeeTransaction,
-        TransactionType.DYNAMIC: DynamicFeeTransaction
+        TransactionType.DYNAMIC: DynamicFeeTransaction,
     }
     if transaction_type not in transaction_types:
         raise ApeArbitrumError(f"Transaction type '{transaction_type}' not supported.")
