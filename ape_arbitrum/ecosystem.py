@@ -6,7 +6,7 @@ from ape.api.networks import LOCAL_NETWORK_NAME
 from ape.exceptions import ApeException
 from ape.types import TransactionSignature
 from ape_ethereum.ecosystem import Ethereum, NetworkConfig
-from ape_ethereum.transactions import StaticFeeTransaction, DynamicFeeTransaction, TransactionType
+from ape_ethereum.transactions import DynamicFeeTransaction, StaticFeeTransaction, TransactionType
 from eth_typing import HexStr
 from eth_utils import add_0x_prefix, decode_hex
 
