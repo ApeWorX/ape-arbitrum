@@ -6,7 +6,7 @@ from ape.api.networks import LOCAL_NETWORK_NAME
 from ape.exceptions import ApeException
 from ape.types import TransactionSignature
 from ape_ethereum.ecosystem import Ethereum, NetworkConfig
-from ape_ethereum.transactions import StaticFeeTransaction, TransactionType
+from ape_ethereum.transactions import DynamicFeeTransaction, StaticFeeTransaction, TransactionType
 from eth_typing import HexStr
 from eth_utils import add_0x_prefix, decode_hex
 
@@ -113,6 +113,7 @@ def _get_transaction_type(_type: Optional[Union[int, str, bytes]]) -> Transactio
 def _get_transaction_cls(transaction_type: TransactionType) -> Type[TransactionAPI]:
     transaction_types = {
         TransactionType.STATIC: StaticFeeTransaction,
+        TransactionType.DYNAMIC: DynamicFeeTransaction,
     }
     if transaction_type not in transaction_types:
         raise ApeArbitrumError(f"Transaction type '{transaction_type}' not supported.")
