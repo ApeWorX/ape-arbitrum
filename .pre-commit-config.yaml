@@ -24,7 +24,7 @@ repos:
     rev: v0.991
     hooks:
     -   id: mypy
-        additional_dependencies: [types-requests, types-setuptools, pydantic]
+        additional_dependencies: [types-setuptools, pydantic]
 
 default_language_version:
     python: python3.8
