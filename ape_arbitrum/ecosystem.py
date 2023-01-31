@@ -26,10 +26,9 @@ class ApeArbitrumError(ApeException):
 def _create_network_config(
     required_confirmations: int = 1, block_time: int = 1, **kwargs
 ) -> NetworkConfig:
-    # Helper method to isolate `type: ignore` comments.
     return NetworkConfig(
         required_confirmations=required_confirmations, block_time=block_time, **kwargs
-    )  # type: ignore
+    )
 
 
 def _create_local_config(default_provider: Optional[str] = None) -> NetworkConfig:
