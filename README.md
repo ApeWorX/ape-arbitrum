@@ -50,14 +50,6 @@ Installing this plugin adds support for the Arbitrum ecosystem:
 ape console --network arbitrum:mainnet
 ```
 
-## Alchemy
-
-To use Alchemy with ape-arbitrum you have to install the [Arbitrum fork of the ape-alchemy plugin](https://github.com/Jam516/ape-alchemy/tree/feat/kofi/add-arbitrum).
-
-```bash
-ape console --network arbitrum:mainnet:alchemy
-```
-
 ## Development
 
 This project is in development and should be considered a beta.
