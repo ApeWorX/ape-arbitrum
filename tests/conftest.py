@@ -15,3 +15,8 @@ def accounts():
 @pytest.fixture
 def Contract():
     return ape.Contract
+
+
+@pytest.fixture
+def arbitrum(networks):
+    return networks.arbitrum
