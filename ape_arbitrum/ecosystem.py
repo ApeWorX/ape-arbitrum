@@ -55,24 +55,17 @@ class ArbitrumReceipt(Receipt):
         Overridden to handle skipping nonce-check for internal txns.
         """
 
+        if self.type != TransactionType.INTERNAL.value:
+            return super().await_confirmations()
+
+        # This logic is copied from ape-ethereum but removes the nonce-increase
+        # waiting, as internal transactions don't increase a nonce (apparently).
+
         try:
             self.raise_for_status()
         except TransactionError:
             # Skip waiting for confirmations when the transaction has failed.
             return self
-
-        iterations_timeout = 20
-        iteration = 0
-        # Wait for nonce from provider to increment.
-        if self.sender and self.type != TransactionType.INTERNAL.value:
-            sender_nonce = self.provider.get_nonce(self.sender)
-
-            while sender_nonce == self.nonce:
-                time.sleep(1)
-                sender_nonce = self.provider.get_nonce(self.sender)
-                iteration += 1
-                if iteration == iterations_timeout:
-                    raise TransactionError("Timeout waiting for sender's nonce to increase.")
 
         if self.required_confirmations == 0:
             # The transaction might not yet be confirmed but
