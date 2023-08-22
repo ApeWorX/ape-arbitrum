@@ -1,14 +1,25 @@
+import time
+from enum import Enum
 from typing import Optional, Type, Union, cast
 
-from ape.api import TransactionAPI
 from ape.api.config import PluginConfig
 from ape.api.networks import LOCAL_NETWORK_NAME
-from ape.exceptions import ApeException
+from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, TransactionAPI
+from ape.exceptions import ApeException, TransactionError
+from ape.logging import logger
 from ape.types import TransactionSignature
 from ape.utils import DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT
 from ape_ethereum.ecosystem import Ethereum, NetworkConfig
-from ape_ethereum.transactions import DynamicFeeTransaction, StaticFeeTransaction, TransactionType
+from ape_ethereum.transactions import (
+    DynamicFeeTransaction,
+    Receipt,
+    StaticFeeTransaction,
+    TransactionStatusEnum,
+    TransactionType,
+)
 from eth_utils import decode_hex
+from ethpm_types import HexBytes
+from pydantic.fields import Field
 
 NETWORKS = {
     # chain_id, network_id
@@ -17,10 +28,82 @@ NETWORKS = {
 }
 
 
+class ArbitrumTransactionType(Enum):
+    STATIC = TransactionType.STATIC.value
+    ACCESS_LIST = TransactionType.ACCESS_LIST.value  # EIP-2930
+    DYNAMIC = TransactionType.DYNAMIC.value  # EIP-1559
+    INTERNAL = 106  # Arbitrum only
+
+
+class InternalTransaction(StaticFeeTransaction):
+    type: int = Field(ArbitrumTransactionType.INTERNAL.value, exclude=True)
+
+
+class InternalReceipt(Receipt):
+    gas_limit = 0
+
+
 class ApeArbitrumError(ApeException):
     """
     Raised in the ape-arbitrum plugin.
     """
+
+
+class ArbitrumReceipt(Receipt):
+    def await_confirmations(self) -> "ReceiptAPI":
+        """
+        Overridden to handle skipping nonce-check for internal txns.
+        """
+
+        try:
+            self.raise_for_status()
+        except TransactionError:
+            # Skip waiting for confirmations when the transaction has failed.
+            return self
+
+        iterations_timeout = 20
+        iteration = 0
+        # Wait for nonce from provider to increment.
+        if self.sender and self.type != ArbitrumTransactionType.INTERNAL.value:
+            sender_nonce = self.provider.get_nonce(self.sender)
+
+            while sender_nonce == self.nonce:
+                time.sleep(1)
+                sender_nonce = self.provider.get_nonce(self.sender)
+                iteration += 1
+                if iteration == iterations_timeout:
+                    raise TransactionError("Timeout waiting for sender's nonce to increase.")
+
+        if self.required_confirmations == 0:
+            # The transaction might not yet be confirmed but
+            # the user is aware of this. Or, this is a development environment.
+            return self
+
+        confirmations_occurred = self._confirmations_occurred
+        if self.required_confirmations and confirmations_occurred >= self.required_confirmations:
+            return self
+
+        # If we get here, that means the transaction has been recently submitted.
+        if explorer_url := self._explorer and self._explorer.get_transaction_url(self.txn_hash):
+            log_message = f"Submitted {explorer_url}"
+        else:
+            log_message = f"Submitted {self.txn_hash}"
+
+        logger.info(log_message)
+
+        if self.required_confirmations:
+            with ConfirmationsProgressBar(self.required_confirmations) as progress_bar:
+                while confirmations_occurred < self.required_confirmations:
+                    confirmations_occurred = self._confirmations_occurred
+                    progress_bar.confs = confirmations_occurred
+
+                    if confirmations_occurred == self.required_confirmations:
+                        break
+
+                    time_to_sleep = int(self._block_time / 2)
+                    time.sleep(time_to_sleep)
+
+        return self
 
 
 def _create_network_config(
@@ -94,20 +177,63 @@ class Arbitrum(Ethereum):
 
         return txn_class.parse_obj(kwargs)
 
-    def get_transaction_type(self, _type: Optional[Union[int, str, bytes]]) -> TransactionType:
+    def get_transaction_type(
+        self, _type: Optional[Union[int, str, bytes]]
+    ) -> ArbitrumTransactionType:
         if _type is None:
-            version = TransactionType.STATIC
+            version = ArbitrumTransactionType.STATIC
         elif not isinstance(_type, int):
-            version = TransactionType(self.conversion_manager.convert(_type, int))
+            version = ArbitrumTransactionType(self.conversion_manager.convert(_type, int))
         else:
-            version = TransactionType(_type)
+            version = ArbitrumTransactionType(_type)
+
         return version
 
+    def decode_receipt(self, data: dict) -> ReceiptAPI:
+        """
+        NOTE: Overridden to use custom receipt class.
+        """
+        status = data.get("status")
+        if status:
+            status = self.conversion_manager.convert(status, int)
+            status = TransactionStatusEnum(status)
 
-def _get_transaction_cls(transaction_type: TransactionType) -> Type[TransactionAPI]:
+        txn_hash = None
+        hash_key_choices = ("hash", "txHash", "txnHash", "transactionHash", "transaction_hash")
+        for choice in hash_key_choices:
+            if choice in data:
+                txn_hash = data[choice]
+                break
+
+        if txn_hash:
+            txn_hash = txn_hash.hex() if isinstance(txn_hash, HexBytes) else txn_hash
+
+        data_bytes = data.get("data", b"")
+        if data_bytes and isinstance(data_bytes, str):
+            data["data"] = HexBytes(data_bytes)
+
+        elif "input" in data and isinstance(data["input"], str):
+            data["input"] = HexBytes(data["input"])
+
+        receipt = ArbitrumReceipt(
+            block_number=data.get("block_number") or data.get("blockNumber"),
+            contract_address=data.get("contract_address") or data.get("contractAddress"),
+            gas_limit=data.get("gas", data.get("gas_limit", data.get("gasLimit"))) or 0,
+            gas_price=data.get("gas_price", data.get("gasPrice")) or 0,
+            gas_used=data.get("gas_used", data.get("gasUsed")) or 0,
+            logs=data.get("logs", []),
+            status=status,
+            txn_hash=txn_hash,
+            transaction=self.create_transaction(**data),
+        )
+        return receipt
+
+
+def _get_transaction_cls(transaction_type: ArbitrumTransactionType) -> Type[TransactionAPI]:
     transaction_types = {
-        TransactionType.STATIC: StaticFeeTransaction,
-        TransactionType.DYNAMIC: DynamicFeeTransaction,
+        ArbitrumTransactionType.STATIC: StaticFeeTransaction,
+        ArbitrumTransactionType.DYNAMIC: DynamicFeeTransaction,
+        ArbitrumTransactionType.INTERNAL: InternalTransaction,
     }
     if transaction_type not in transaction_types:
         raise ApeArbitrumError(f"Transaction type '{transaction_type}' not supported.")
