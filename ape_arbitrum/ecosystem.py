@@ -39,10 +39,6 @@ class InternalTransaction(StaticFeeTransaction):
     type: int = Field(TransactionType.INTERNAL.value, exclude=True)
 
 
-class InternalReceipt(Receipt):
-    gas_limit = 0
-
-
 class ApeArbitrumError(ApeException):
     """
     Raised in the ape-arbitrum plugin.
