@@ -15,8 +15,8 @@ from ape_ethereum.transactions import (
     Receipt,
     StaticFeeTransaction,
     TransactionStatusEnum,
-    TransactionType,
 )
+from ape_ethereum.transactions import TransactionType as EthTransactionType
 from eth_utils import decode_hex
 from ethpm_types import HexBytes
 from pydantic.fields import Field
@@ -28,15 +28,15 @@ NETWORKS = {
 }
 
 
-class ArbitrumTransactionType(Enum):
-    STATIC = TransactionType.STATIC.value
-    ACCESS_LIST = TransactionType.ACCESS_LIST.value  # EIP-2930
-    DYNAMIC = TransactionType.DYNAMIC.value  # EIP-1559
+class TransactionType(Enum):
+    STATIC = EthTransactionType.STATIC.value
+    ACCESS_LIST = EthTransactionType.ACCESS_LIST.value  # EIP-2930
+    DYNAMIC = EthTransactionType.DYNAMIC.value  # EIP-1559
     INTERNAL = 106  # Arbitrum only
 
 
 class InternalTransaction(StaticFeeTransaction):
-    type: int = Field(ArbitrumTransactionType.INTERNAL.value, exclude=True)
+    type: int = Field(TransactionType.INTERNAL.value, exclude=True)
 
 
 class InternalReceipt(Receipt):
@@ -64,7 +64,7 @@ class ArbitrumReceipt(Receipt):
         iterations_timeout = 20
         iteration = 0
         # Wait for nonce from provider to increment.
-        if self.sender and self.type != ArbitrumTransactionType.INTERNAL.value:
+        if self.sender and self.type != TransactionType.INTERNAL.value:
             sender_nonce = self.provider.get_nonce(self.sender)
 
             while sender_nonce == self.nonce:
@@ -177,15 +177,13 @@ class Arbitrum(Ethereum):
 
         return txn_class.parse_obj(kwargs)
 
-    def get_transaction_type(
-        self, _type: Optional[Union[int, str, bytes]]
-    ) -> ArbitrumTransactionType:
+    def get_transaction_type(self, _type: Optional[Union[int, str, bytes]]) -> TransactionType:
         if _type is None:
-            version = ArbitrumTransactionType.STATIC
+            version = TransactionType.STATIC
         elif not isinstance(_type, int):
-            version = ArbitrumTransactionType(self.conversion_manager.convert(_type, int))
+            version = TransactionType(self.conversion_manager.convert(_type, int))
         else:
-            version = ArbitrumTransactionType(_type)
+            version = TransactionType(_type)
 
         return version
 
@@ -229,11 +227,11 @@ class Arbitrum(Ethereum):
         return receipt
 
 
-def _get_transaction_cls(transaction_type: ArbitrumTransactionType) -> Type[TransactionAPI]:
+def _get_transaction_cls(transaction_type: TransactionType) -> Type[TransactionAPI]:
     transaction_types = {
-        ArbitrumTransactionType.STATIC: StaticFeeTransaction,
-        ArbitrumTransactionType.DYNAMIC: DynamicFeeTransaction,
-        ArbitrumTransactionType.INTERNAL: InternalTransaction,
+        TransactionType.STATIC: StaticFeeTransaction,
+        TransactionType.DYNAMIC: DynamicFeeTransaction,
+        TransactionType.INTERNAL: InternalTransaction,
     }
     if transaction_type not in transaction_types:
         raise ApeArbitrumError(f"Transaction type '{transaction_type}' not supported.")
