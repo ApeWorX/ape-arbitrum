@@ -1,6 +1,5 @@
 import time
-from enum import Enum
-from typing import Optional, Type, Union, cast
+from typing import Optional, Type, cast
 
 from ape.api.config import PluginConfig
 from ape.api.networks import LOCAL_NETWORK_NAME
@@ -8,7 +7,7 @@ from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, Transacti
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
 from ape.types import TransactionSignature
-from ape.utils import DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT
+from ape.utils import DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT, to_int
 from ape_ethereum.ecosystem import Ethereum, NetworkConfig
 from ape_ethereum.transactions import (
     DynamicFeeTransaction,
@@ -26,17 +25,11 @@ NETWORKS = {
     "mainnet": (42161, 42161),
     "goerli": (421613, 421613),
 }
-
-
-class TransactionType(Enum):
-    STATIC = EthTransactionType.STATIC.value
-    ACCESS_LIST = EthTransactionType.ACCESS_LIST.value  # EIP-2930
-    DYNAMIC = EthTransactionType.DYNAMIC.value  # EIP-1559
-    INTERNAL = 106  # Arbitrum only
+INTERNAL_TRANSACTION_TYPE = 106
 
 
 class InternalTransaction(StaticFeeTransaction):
-    type: int = Field(TransactionType.INTERNAL.value, exclude=True)
+    type: int = Field(INTERNAL_TRANSACTION_TYPE, exclude=True)
 
 
 class ApeArbitrumError(ApeException):
@@ -51,7 +44,7 @@ class ArbitrumReceipt(Receipt):
         Overridden to handle skipping nonce-check for internal txns.
         """
 
-        if self.type != TransactionType.INTERNAL.value:
+        if self.type != INTERNAL_TRANSACTION_TYPE:
             return super().await_confirmations()
 
         # This logic is copied from ape-ethereum but removes the nonce-increase
@@ -138,8 +131,8 @@ class Arbitrum(Ethereum):
             :class:`~ape.api.transactions.TransactionAPI`
         """
 
-        transaction_type = self.get_transaction_type(kwargs.get("type"))
-        kwargs["type"] = transaction_type.value
+        transaction_type = to_int(kwargs.get("type", EthTransactionType.STATIC.value))
+        kwargs["type"] = transaction_type
         txn_class = _get_transaction_cls(transaction_type)
 
         if "required_confirmations" not in kwargs or kwargs["required_confirmations"] is None:
@@ -165,16 +158,6 @@ class Arbitrum(Ethereum):
             )
 
         return txn_class.parse_obj(kwargs)
-
-    def get_transaction_type(self, _type: Optional[Union[int, str, bytes]]) -> TransactionType:
-        if _type is None:
-            version = TransactionType.STATIC
-        elif not isinstance(_type, int):
-            version = TransactionType(self.conversion_manager.convert(_type, int))
-        else:
-            version = TransactionType(_type)
-
-        return version
 
     def decode_receipt(self, data: dict) -> ReceiptAPI:
         """
@@ -216,11 +199,11 @@ class Arbitrum(Ethereum):
         return receipt
 
 
-def _get_transaction_cls(transaction_type: TransactionType) -> Type[TransactionAPI]:
+def _get_transaction_cls(transaction_type: int) -> Type[TransactionAPI]:
     transaction_types = {
-        TransactionType.STATIC: StaticFeeTransaction,
-        TransactionType.DYNAMIC: DynamicFeeTransaction,
-        TransactionType.INTERNAL: InternalTransaction,
+        EthTransactionType.STATIC.value: StaticFeeTransaction,
+        EthTransactionType.DYNAMIC.value: DynamicFeeTransaction,
+        INTERNAL_TRANSACTION_TYPE: InternalTransaction,
     }
     if transaction_type not in transaction_types:
         raise ApeArbitrumError(f"Transaction type '{transaction_type}' not supported.")

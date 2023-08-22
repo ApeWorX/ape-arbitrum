@@ -1,7 +1,8 @@
 import pytest
+from ape_ethereum.transactions import TransactionType
 from ethpm_types import HexBytes
 
-from ape_arbitrum.ecosystem import ArbitrumReceipt, TransactionType
+from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, ArbitrumReceipt
 
 
 def test_gas_limit(arbitrum):
@@ -15,8 +16,8 @@ def test_create_transaction(arbitrum, type):
 
 
 def test_internal_tx(arbitrum):
-    tx = arbitrum.create_transaction(type=106)
-    assert tx.type == TransactionType.INTERNAL.value
+    tx = arbitrum.create_transaction(type=INTERNAL_TRANSACTION_TYPE)
+    assert tx.type == INTERNAL_TRANSACTION_TYPE
 
 
 def test_decode_receipt(arbitrum):
