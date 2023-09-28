@@ -1,6 +1,6 @@
 import pytest
 from ape_ethereum.transactions import TransactionType
-from ethpm_types import HexBytes
+from ethpm_types import HexBytes, MethodABI
 
 from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, ArbitrumReceipt
 
@@ -10,9 +10,29 @@ def test_gas_limit(arbitrum):
 
 
 @pytest.mark.parametrize("type", (0, "0x0"))
-def test_create_transaction(arbitrum, type):
+def test_create_transaction(arbitrum, type, eth_tester_provider):
     tx = arbitrum.create_transaction(type=type)
     assert tx.type == TransactionType.STATIC.value
+    assert tx.gas_limit == eth_tester_provider.max_gas
+
+
+@pytest.mark.parametrize(
+    "type_",
+    (TransactionType.STATIC.value, TransactionType.DYNAMIC.value, INTERNAL_TRANSACTION_TYPE),
+)
+def test_encode_transaction(type_, arbitrum, eth_tester_provider):
+    abi = MethodABI.parse_obj(
+        {
+            "type": "function",
+            "name": "fooAndBar",
+            "stateMutability": "nonpayable",
+            "inputs": [],
+            "outputs": [],
+        }
+    )
+    address = "0x274b028b03A250cA03644E6c578D81f019eE1323"
+    actual = arbitrum.encode_transaction(address, abi, sender=address, type=type_)
+    assert actual.gas_limit == eth_tester_provider.max_gas
 
 
 def test_internal_tx(arbitrum):
