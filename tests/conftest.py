@@ -29,3 +29,13 @@ def eth_tester_provider():
             yield provider
     else:
         yield ape.networks.provider
+
+
+@pytest.fixture
+def account(accounts):
+    return accounts.test_accounts[0]
+
+
+@pytest.fixture
+def second_account(accounts):
+    return accounts.test_accounts[1]

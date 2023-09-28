@@ -36,7 +36,7 @@ def test_encode_transaction(type_, arbitrum, eth_tester_provider):
 
 
 def test_internal_tx(arbitrum):
-    tx = arbitrum.create_transaction(type=INTERNAL_TRANSACTION_TYPE)
+    tx = arbitrum.create_transaction(type=INTERNAL_TRANSACTION_TYPE, gas_limit=10000)
     assert tx.type == INTERNAL_TRANSACTION_TYPE
 
 
