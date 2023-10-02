@@ -1,5 +1,5 @@
 import time
-from typing import Optional, Type, cast
+from typing import Dict, Optional, Type, cast
 
 from ape.api.config import PluginConfig
 from ape.api.networks import LOCAL_NETWORK_NAME
@@ -7,7 +7,7 @@ from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, Transacti
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
 from ape.types import TransactionSignature
-from ape.utils import DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT, to_int
+from ape.utils import DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT
 from ape_ethereum.ecosystem import Ethereum, NetworkConfig
 from ape_ethereum.transactions import (
     DynamicFeeTransaction,
@@ -16,7 +16,6 @@ from ape_ethereum.transactions import (
     TransactionStatusEnum,
 )
 from ape_ethereum.transactions import TransactionType as EthTransactionType
-from eth_utils import decode_hex
 from ethpm_types import HexBytes
 from pydantic.fields import Field
 
@@ -92,7 +91,10 @@ def _create_network_config(
     required_confirmations: int = 1, block_time: int = 1, **kwargs
 ) -> NetworkConfig:
     return NetworkConfig(
-        required_confirmations=required_confirmations, block_time=block_time, **kwargs
+        required_confirmations=required_confirmations,
+        block_time=block_time,
+        default_transaction_type=EthTransactionType.STATIC,
+        **kwargs,
     )
 
 
@@ -117,7 +119,7 @@ class ArbitrumConfig(PluginConfig):
 
 class Arbitrum(Ethereum):
     @property
-    def config(self) -> ArbitrumConfig:  # type: ignore
+    def config(self) -> ArbitrumConfig:  # type: ignore[override]
         return cast(ArbitrumConfig, self.config_manager.get_config("arbitrum"))
 
     def create_transaction(self, **kwargs) -> TransactionAPI:
@@ -131,9 +133,28 @@ class Arbitrum(Ethereum):
             :class:`~ape.api.transactions.TransactionAPI`
         """
 
-        transaction_type = to_int(kwargs.get("type", EthTransactionType.STATIC.value))
-        kwargs["type"] = transaction_type
-        txn_class = _get_transaction_cls(transaction_type)
+        transaction_types: Dict[int, Type[TransactionAPI]] = {
+            EthTransactionType.STATIC.value: StaticFeeTransaction,
+            EthTransactionType.DYNAMIC.value: DynamicFeeTransaction,
+            INTERNAL_TRANSACTION_TYPE: InternalTransaction,
+        }
+
+        if "type" in kwargs:
+            if kwargs["type"] is None:
+                # The Default is pre-EIP-1559.
+                version = self.default_transaction_type.value
+            elif not isinstance(kwargs["type"], int):
+                version = self.conversion_manager.convert(kwargs["type"], int)
+            else:
+                version = kwargs["type"]
+
+        elif "gas_price" in kwargs:
+            version = EthTransactionType.STATIC.value
+        else:
+            version = self.default_transaction_type.value
+
+        kwargs["type"] = version
+        txn_class = transaction_types[version]
 
         if "required_confirmations" not in kwargs or kwargs["required_confirmations"] is None:
             # Attempt to use default required-confirmations from `ape-config.yaml`.
@@ -147,17 +168,30 @@ class Arbitrum(Ethereum):
         if isinstance(kwargs.get("chainId"), str):
             kwargs["chainId"] = int(kwargs["chainId"], 16)
 
+        elif "chainId" not in kwargs and self.network_manager.active_provider is not None:
+            kwargs["chainId"] = self.provider.chain_id
+
         if "input" in kwargs:
-            kwargs["data"] = decode_hex(kwargs.pop("input").hex())
+            kwargs["data"] = kwargs.pop("input")
 
         if all(field in kwargs for field in ("v", "r", "s")):
-            kwargs["signature"] = TransactionSignature(  # type: ignore
+            kwargs["signature"] = TransactionSignature(
                 v=kwargs["v"],
                 r=bytes(kwargs["r"]),
                 s=bytes(kwargs["s"]),
             )
 
-        return txn_class.parse_obj(kwargs)
+        if "max_priority_fee_per_gas" in kwargs:
+            kwargs["max_priority_fee"] = kwargs.pop("max_priority_fee_per_gas")
+        if "max_fee_per_gas" in kwargs:
+            kwargs["max_fee"] = kwargs.pop("max_fee_per_gas")
+
+        kwargs["gas"] = kwargs.pop("gas_limit", kwargs.get("gas"))
+
+        if "value" in kwargs and not isinstance(kwargs["value"], int):
+            kwargs["value"] = self.conversion_manager.convert(kwargs["value"], int)
+
+        return txn_class(**kwargs)
 
     def decode_receipt(self, data: dict) -> ReceiptAPI:
         """
@@ -185,7 +219,7 @@ class Arbitrum(Ethereum):
         elif "input" in data and isinstance(data["input"], str):
             data["input"] = HexBytes(data["input"])
 
-        receipt = ArbitrumReceipt(
+        return ArbitrumReceipt(
             block_number=data.get("block_number") or data.get("blockNumber"),
             contract_address=data.get("contract_address") or data.get("contractAddress"),
             gas_limit=data.get("gas", data.get("gas_limit", data.get("gasLimit"))) or 0,
@@ -196,16 +230,3 @@ class Arbitrum(Ethereum):
             txn_hash=txn_hash,
             transaction=self.create_transaction(**data),
         )
-        return receipt
-
-
-def _get_transaction_cls(transaction_type: int) -> Type[TransactionAPI]:
-    transaction_types = {
-        EthTransactionType.STATIC.value: StaticFeeTransaction,
-        EthTransactionType.DYNAMIC.value: DynamicFeeTransaction,
-        INTERNAL_TRANSACTION_TYPE: InternalTransaction,
-    }
-    if transaction_type not in transaction_types:
-        raise ApeArbitrumError(f"Transaction type '{transaction_type}' not supported.")
-
-    return transaction_types[transaction_type]
