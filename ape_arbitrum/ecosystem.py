@@ -123,7 +123,7 @@ class ArbitrumConfig(PluginConfig):
 
 class Arbitrum(Ethereum):
     @property
-    def config(self) -> ArbitrumConfig:  # type: ignore[override]
+    def config(self) -> ArbitrumConfig:
         return cast(ArbitrumConfig, self.config_manager.get_config("arbitrum"))
 
     def create_transaction(self, **kwargs) -> TransactionAPI:
