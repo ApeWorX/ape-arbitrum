@@ -2,11 +2,13 @@ import pytest
 from ape_ethereum.transactions import TransactionType
 from ethpm_types import HexBytes, MethodABI
 
-from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, ArbitrumReceipt
+from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, LOCAL_GAS_LIMIT, ArbitrumReceipt
 
 
 def test_gas_limit(arbitrum):
-    assert arbitrum.config.local.gas_limit == "max"
+    # NOTE: The reason we have a hard-coded gas limit is because
+    #   the block gas limit in Arbitrum is extremely high.
+    assert arbitrum.config.local.gas_limit == LOCAL_GAS_LIMIT
 
 
 @pytest.mark.parametrize("type", (0, "0x0"))

@@ -26,6 +26,10 @@ NETWORKS = {
 }
 INTERNAL_TRANSACTION_TYPE = 106
 
+# NOTE: Use a hard-coded gas limit for testing
+#   because the block gasLimit is extremely high in Arbitrum networks.
+LOCAL_GAS_LIMIT = 30_000_000
+
 
 class InternalTransaction(StaticFeeTransaction):
     type: int = Field(INTERNAL_TRANSACTION_TYPE, exclude=True)
@@ -103,7 +107,7 @@ def _create_local_config(default_provider: Optional[str] = None, **kwargs) -> Ne
         required_confirmations=0,
         default_provider=default_provider,
         transaction_acceptance_timeout=DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT,
-        gas_limit="max",
+        gas_limit=LOCAL_GAS_LIMIT,
         **kwargs,
     )
 
