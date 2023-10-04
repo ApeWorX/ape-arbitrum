@@ -26,6 +26,10 @@ NETWORKS = {
 }
 INTERNAL_TRANSACTION_TYPE = 106
 
+# NOTE: Use a hard-coded gas limit for testing
+#   because the block gasLimit is extremely high in Arbitrum networks.
+LOCAL_GAS_LIMIT = 30_000_000
+
 
 class InternalTransaction(StaticFeeTransaction):
     type: int = Field(INTERNAL_TRANSACTION_TYPE, exclude=True)
@@ -100,10 +104,11 @@ def _create_network_config(
 
 def _create_local_config(default_provider: Optional[str] = None, **kwargs) -> NetworkConfig:
     return _create_network_config(
-        required_confirmations=0,
+        block_time=0,
         default_provider=default_provider,
+        gas_limit=LOCAL_GAS_LIMIT,
+        required_confirmations=0,
         transaction_acceptance_timeout=DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT,
-        gas_limit="max",
         **kwargs,
     )
 
@@ -219,8 +224,12 @@ class Arbitrum(Ethereum):
         elif "input" in data and isinstance(data["input"], str):
             data["input"] = HexBytes(data["input"])
 
+        block_number = data.get("block_number") or data.get("blockNumber")
+        if block_number is None:
+            raise ValueError("Block number cannot be None")
+
         return ArbitrumReceipt(
-            block_number=data.get("block_number") or data.get("blockNumber"),
+            block_number=block_number,
             contract_address=data.get("contract_address") or data.get("contractAddress"),
             gas_limit=data.get("gas", data.get("gas_limit", data.get("gasLimit"))) or 0,
             gas_price=data.get("gas_price", data.get("gasPrice")) or 0,

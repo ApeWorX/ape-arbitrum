@@ -25,7 +25,7 @@ def arbitrum(networks):
 @pytest.fixture
 def eth_tester_provider():
     if not ape.networks.active_provider or ape.networks.provider.name != "test":
-        with ape.networks.ethereum.local.use_provider("test") as provider:
+        with ape.networks.arbitrum.local.use_provider("test") as provider:
             yield provider
     else:
         yield ape.networks.provider
