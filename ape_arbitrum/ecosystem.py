@@ -23,6 +23,7 @@ NETWORKS = {
     # chain_id, network_id
     "mainnet": (42161, 42161),
     "goerli": (421613, 421613),
+    "sepolia": (421614, 421614),
 }
 INTERNAL_TRANSACTION_TYPE = 106
 
@@ -118,6 +119,8 @@ class ArbitrumConfig(PluginConfig):
     mainnet_fork: NetworkConfig = _create_local_config()
     goerli: NetworkConfig = _create_network_config()
     goerli_fork: NetworkConfig = _create_local_config()
+    sepolia: NetworkConfig = _create_network_config()
+    sepolia_fork: NetworkConfig = _create_local_config()
     local: NetworkConfig = _create_local_config(default_provider="test")
     default_network: str = LOCAL_NETWORK_NAME
 
