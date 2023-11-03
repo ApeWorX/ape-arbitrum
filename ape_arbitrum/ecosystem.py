@@ -95,7 +95,7 @@ class ArbitrumReceipt(Receipt):
 def _create_config(
     required_confirmations: int = 1,
     block_time: int = 1,
-    cls: Type[NetworkConfig] = NetworkConfig,
+    cls: Type = NetworkConfig,
     **kwargs,
 ) -> NetworkConfig:
     return cls(
