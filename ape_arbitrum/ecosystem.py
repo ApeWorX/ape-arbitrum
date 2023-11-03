@@ -106,9 +106,7 @@ def _create_config(
     )
 
 
-def _create_local_config(
-    default_provider: Optional[str] = None, use_fork: bool = False, **kwargs
-) -> NetworkConfig:
+def _create_local_config(default_provider: Optional[str] = None, use_fork: bool = False, **kwargs):
     return _create_config(
         block_time=0,
         default_provider=default_provider,
