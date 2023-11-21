@@ -16,7 +16,7 @@ from ape_ethereum.transactions import (
     TransactionStatusEnum,
 )
 from ape_ethereum.transactions import TransactionType as EthTransactionType
-from ethpm_types import HexBytes
+from eth_pydantic_types import HexBytes
 from pydantic.fields import Field
 
 NETWORKS = {
