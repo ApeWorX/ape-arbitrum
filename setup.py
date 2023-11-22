@@ -13,19 +13,21 @@ extras_require = {
     "lint": [
         "black>=23.11.0,<24",  # Auto-formatter and linter
         "mypy>=1.7.0,<2",  # Static type analyzer
+        "types-setuptools",  # Needed for mypy type shed
         "flake8>=6.1.0,<7",  # Style linter
         "isort>=5.10.1,<6",  # Import sorting linter
-        "types-setuptools",  # Needed due to mypy typeshed
         "mdformat>=0.7.17",  # Auto-formatter for markdown
         "mdformat-gfm>=0.3.5",  # Needed for formatting GitHub-flavored markdown
         "mdformat-frontmatter>=0.4.1",  # Needed for frontmatters-style headers in issue templates
+        "mdformat-pyproject>=0.0.1",  # Allows configuring in pyproject.toml
     ],
     "doc": [
-        "myst-parser>=0.17.0,<0.18",  # Tools for parsing markdown files in the docs
-        "sphinx-click>=3.1.0,<4.0",  # For documenting CLI
-        "Sphinx>=4.4.0,<5.0",  # Documentation generator
-        "sphinx_rtd_theme>=1.0.0,<2",  # Readthedocs.org theme
+        "myst-parser>=1.0.0,<2",  # Parse markdown docs
+        "sphinx-click>=4.4.0,<5",  # For documenting CLI
+        "Sphinx>=6.1.3,<7",  # Documentation generator
+        "sphinx_rtd_theme>=1.2.0,<2",  # Readthedocs.org theme
         "sphinxcontrib-napoleon>=0.7",  # Allow Google-style documentation
+        "sphinx-plausible>=0.1.2,<0.2",
     ],
     "release": [  # `release` GitHub Action job uses this
         "setuptools",  # Installation tool
