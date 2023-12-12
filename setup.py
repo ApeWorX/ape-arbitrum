@@ -11,7 +11,7 @@ extras_require = {
         "hypothesis>=6.2.0,<7.0",  # Strategy-based fuzzer
     ],
     "lint": [
-        "black>=23.11.0,<24",  # Auto-formatter and linter
+        "black>=23.12.0,<24",  # Auto-formatter and linter
         "mypy>=1.7.1,<2",  # Static type analyzer
         "types-setuptools",  # Needed for mypy type shed
         "flake8>=6.1.0,<7",  # Style linter
@@ -72,8 +72,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "eth-ape>=0.7.0,<0.8",
-        "eth-pydantic-types",  # Get eth-pydantic-types version from ape
-        "ethpm-types",  # Get ethpm-types version from ape
+        "eth-pydantic-types",  # Use same version as eth-ape
+        "ethpm-types",  # Use same version as eth-ape
     ],
     python_requires=">=3.8,<4",
     extras_require=extras_require,
