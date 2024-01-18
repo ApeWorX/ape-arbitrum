@@ -12,6 +12,7 @@ from ape_ethereum.ecosystem import Ethereum, ForkedNetworkConfig, NetworkConfig
 from ape_ethereum.transactions import (
     DynamicFeeTransaction,
     Receipt,
+    AccessListTransaction,
     StaticFeeTransaction,
     TransactionStatusEnum,
 )
@@ -145,65 +146,161 @@ class Arbitrum(Ethereum):
             :class:`~ape.api.transactions.TransactionAPI`
         """
 
+
+        # Handle all aliases.
+        tx_data = dict(kwargs)
+        tx_data = _correct_key(
+            "max_priority_fee",
+            tx_data,
+            ("max_priority_fee_per_gas", "maxPriorityFeePerGas", "maxPriorityFee"),
+        )
+        tx_data = _correct_key("max_fee", tx_data, ("max_fee_per_gas", "maxFeePerGas", "maxFee"))
+        tx_data = _correct_key("gas", tx_data, ("gas_limit", "gasLimit"))
+        tx_data = _correct_key("gas_price", tx_data, ("gasPrice",))
+        tx_data = _correct_key(
+            "type",
+            tx_data,
+            ("txType", "tx_type", "txnType", "txn_type", "transactionType", "transaction_type"),
+        )
+
+        # Handle unique value specifications, such as "1 ether".
+        if "value" in tx_data and not isinstance(tx_data["value"], int):
+            value = tx_data["value"] or 0  # Convert None to 0.
+            tx_data["value"] = self.conversion_manager.convert(value, int)
+
+        # None is not allowed, the user likely means `b""`.
+        if "data" in tx_data and tx_data["data"] is None:
+            tx_data["data"] = b""
+
+        # Deduce the transaction type.
         transaction_types: Dict[int, Type[TransactionAPI]] = {
             EthTransactionType.STATIC.value: StaticFeeTransaction,
             EthTransactionType.DYNAMIC.value: DynamicFeeTransaction,
+            EthTransactionType.ACCESS_LIST.value: AccessListTransaction,
             INTERNAL_TRANSACTION_TYPE: InternalTransaction,
         }
 
-        if "type" in kwargs:
-            if kwargs["type"] is None:
-                # The Default is pre-EIP-1559.
-                version = self.default_transaction_type.value
-            elif not isinstance(kwargs["type"], int):
-                version = self.conversion_manager.convert(kwargs["type"], int)
+        if "type" in tx_data:
+            if tx_data["type"] is None:
+                # Explicit `None` means used default.
+                version = self.default_transaction_type
+            elif isinstance(tx_data["type"], EthTransactionType):
+                version = tx_data["type"]
+            elif isinstance(tx_data["type"], int):
+                version = TransactionType(tx_data["type"])
             else:
-                version = kwargs["type"]
+                # Using hex values or alike.
+                version = TransactionType(self.conversion_manager.convert(tx_data["type"], int))
 
-        elif "gas_price" in kwargs:
-            version = EthTransactionType.STATIC.value
+        elif "gas_price" in tx_data:
+            version = TransactionType.STATIC
+        elif "max_fee" in tx_data or "max_priority_fee" in tx_data:
+            version = TransactionType.DYNAMIC
+        elif "access_list" in tx_data or "accessList" in tx_data:
+            version = TransactionType.ACCESS_LIST
         else:
-            version = self.default_transaction_type.value
+            version = self.default_transaction_type
 
-        kwargs["type"] = version
+        tx_data["type"] = version.value
+
+        # This causes problems in pydantic for some reason.
+        # NOTE: This must happen after deducing the tx type!
+        if "gas_price" in tx_data and tx_data["gas_price"] is None:
+            del tx_data["gas_price"]
+
         txn_class = transaction_types[version]
 
-        if "required_confirmations" not in kwargs or kwargs["required_confirmations"] is None:
+        if "required_confirmations" not in tx_data or tx_data["required_confirmations"] is None:
             # Attempt to use default required-confirmations from `ape-config.yaml`.
             required_confirmations = 0
             active_provider = self.network_manager.active_provider
             if active_provider:
                 required_confirmations = active_provider.network.required_confirmations
 
-            kwargs["required_confirmations"] = required_confirmations
+            tx_data["required_confirmations"] = required_confirmations
 
-        if isinstance(kwargs.get("chainId"), str):
-            kwargs["chainId"] = int(kwargs["chainId"], 16)
+        if isinstance(tx_data.get("chainId"), str):
+            tx_data["chainId"] = int(tx_data["chainId"], 16)
 
-        elif "chainId" not in kwargs and self.network_manager.active_provider is not None:
-            kwargs["chainId"] = self.provider.chain_id
+        elif (
+            "chainId" not in tx_data or tx_data["chainId"] is None
+        ) and self.network_manager.active_provider is not None:
+            tx_data["chainId"] = self.provider.chain_id
 
-        if "input" in kwargs:
-            kwargs["data"] = kwargs.pop("input")
+        if "input" in tx_data:
+            tx_data["data"] = tx_data.pop("input")
 
-        if all(field in kwargs for field in ("v", "r", "s")):
-            kwargs["signature"] = TransactionSignature(
-                v=kwargs["v"],
-                r=bytes(kwargs["r"]),
-                s=bytes(kwargs["s"]),
+        if all(field in tx_data for field in ("v", "r", "s")):
+            tx_data["signature"] = TransactionSignature(
+                v=tx_data["v"],
+                r=bytes(tx_data["r"]),
+                s=bytes(tx_data["s"]),
             )
 
-        if "max_priority_fee_per_gas" in kwargs:
-            kwargs["max_priority_fee"] = kwargs.pop("max_priority_fee_per_gas")
-        if "max_fee_per_gas" in kwargs:
-            kwargs["max_fee"] = kwargs.pop("max_fee_per_gas")
+        if "gas" not in tx_data:
+            tx_data["gas"] = None
 
-        kwargs["gas"] = kwargs.pop("gas_limit", kwargs.get("gas"))
+        return txn_class(**tx_data)
 
-        if "value" in kwargs and not isinstance(kwargs["value"], int):
-            kwargs["value"] = self.conversion_manager.convert(kwargs["value"], int)
-
-        return txn_class(**kwargs)
+        # transaction_types: Dict[int, Type[TransactionAPI]] = {
+        #     EthTransactionType.STATIC.value: StaticFeeTransaction,
+        #     EthTransactionType.DYNAMIC.value: DynamicFeeTransaction,
+        #     INTERNAL_TRANSACTION_TYPE: InternalTransaction,
+        # }
+        #
+        # if "type" in kwargs:
+        #     if kwargs["type"] is None:
+        #         # The Default is pre-EIP-1559.
+        #         version = self.default_transaction_type.value
+        #     elif not isinstance(kwargs["type"], int):
+        #         version = self.conversion_manager.convert(kwargs["type"], int)
+        #     else:
+        #         version = kwargs["type"]
+        #
+        # elif "gas_price" in kwargs:
+        #     version = EthTransactionType.STATIC.value
+        # else:
+        #     version = self.default_transaction_type.value
+        #
+        # kwargs["type"] = version
+        # txn_class = transaction_types[version]
+        #
+        # if "required_confirmations" not in kwargs or kwargs["required_confirmations"] is None:
+        #     # Attempt to use default required-confirmations from `ape-config.yaml`.
+        #     required_confirmations = 0
+        #     active_provider = self.network_manager.active_provider
+        #     if active_provider:
+        #         required_confirmations = active_provider.network.required_confirmations
+        #
+        #     kwargs["required_confirmations"] = required_confirmations
+        #
+        # if isinstance(kwargs.get("chainId"), str):
+        #     kwargs["chainId"] = int(kwargs["chainId"], 16)
+        #
+        # elif "chainId" not in kwargs and self.network_manager.active_provider is not None:
+        #     kwargs["chainId"] = self.provider.chain_id
+        #
+        # if "input" in kwargs:
+        #     kwargs["data"] = kwargs.pop("input")
+        #
+        # if all(field in kwargs for field in ("v", "r", "s")):
+        #     kwargs["signature"] = TransactionSignature(
+        #         v=kwargs["v"],
+        #         r=bytes(kwargs["r"]),
+        #         s=bytes(kwargs["s"]),
+        #     )
+        #
+        # if "max_priority_fee_per_gas" in kwargs:
+        #     kwargs["max_priority_fee"] = kwargs.pop("max_priority_fee_per_gas")
+        # if "max_fee_per_gas" in kwargs:
+        #     kwargs["max_fee"] = kwargs.pop("max_fee_per_gas")
+        #
+        # kwargs["gas"] = kwargs.pop("gas_limit", kwargs.get("gas"))
+        #
+        # if "value" in kwargs and not isinstance(kwargs["value"], int):
+        #     kwargs["value"] = self.conversion_manager.convert(kwargs["value"], int)
+        #
+        # return txn_class(**kwargs)
 
     def decode_receipt(self, data: dict) -> ReceiptAPI:
         """

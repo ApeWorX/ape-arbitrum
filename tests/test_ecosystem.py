@@ -12,12 +12,39 @@ def test_gas_limit(arbitrum):
     assert arbitrum.config.local.gas_limit == LOCAL_GAS_LIMIT
 
 
-# NOTE: None because we want to show the default is STATIC
-@pytest.mark.parametrize("tx_type", (None, 0, "0x0"))
-def test_create_transaction(arbitrum, tx_type, eth_tester_provider):
-    tx = arbitrum.create_transaction(type=tx_type)
-    assert tx.type == TransactionType.STATIC.value
-    assert tx.gas_limit == LOCAL_GAS_LIMIT
+@pytest.mark.parametrize(
+    "tx_kwargs",
+    [
+        {},  # Default is type 0 in Optimism.
+        {"type": 0},
+        {"gas_price": 0},
+        {"gasPrice": 0},
+    ],
+)
+def test_create_transaction_type_0(arbitrum, tx_kwargs):
+    txn = arbitrum.create_transaction(**tx_kwargs)
+    assert txn.type == TransactionType.STATIC.value
+
+
+@pytest.mark.parametrize(
+    "tx_kwargs",
+    [
+        {"type": 2},
+        {"max_fee": 0},
+        {"max_fee_per_gas": 0},
+        {"maxFee": 0},
+        {"max_priority_fee_per_gas": 0},
+        {"max_priority_fee": 0},
+        {"maxPriorityFeePerGas": 0},
+    ],
+)
+def test_create_transaction_type_2(bsc, tx_kwargs):
+    """
+    Show is smart-enough to deduce type 2 transactions.
+    """
+
+    txn = bsc.create_transaction(**tx_kwargs)
+    assert txn.type == TransactionType.DYNAMIC.value
 
 
 @pytest.mark.parametrize(
