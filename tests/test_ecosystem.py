@@ -15,7 +15,7 @@ def test_gas_limit(arbitrum):
 @pytest.mark.parametrize(
     "tx_kwargs",
     [
-        {},  # Default is type 0 in Optimism.
+        {},  # Default is type 0 in Arbitrum.
         {"type": 0},
         {"gas_price": 0},
         {"gasPrice": 0},
@@ -38,13 +38,18 @@ def test_create_transaction_type_0(arbitrum, tx_kwargs):
         {"maxPriorityFeePerGas": 0},
     ],
 )
-def test_create_transaction_type_2(bsc, tx_kwargs):
+def test_create_transaction_type_2(arbitrum, tx_kwargs):
     """
     Show is smart-enough to deduce type 2 transactions.
     """
 
-    txn = bsc.create_transaction(**tx_kwargs)
+    txn = arbitrum.create_transaction(**tx_kwargs)
     assert txn.type == TransactionType.DYNAMIC.value
+
+
+def test_create_transaction_internal(arbitrum):
+    tx = arbitrum.create_transaction(type=INTERNAL_TRANSACTION_TYPE, gas_limit=10000)
+    assert tx.type == INTERNAL_TRANSACTION_TYPE
 
 
 @pytest.mark.parametrize(
@@ -64,11 +69,6 @@ def test_encode_transaction(tx_type, arbitrum, eth_tester_provider):
     address = "0x274b028b03A250cA03644E6c578D81f019eE1323"
     actual = arbitrum.encode_transaction(address, abi, sender=address, type=tx_type)
     assert actual.gas_limit == LOCAL_GAS_LIMIT
-
-
-def test_internal_tx(arbitrum):
-    tx = arbitrum.create_transaction(type=INTERNAL_TRANSACTION_TYPE, gas_limit=10000)
-    assert tx.type == INTERNAL_TRANSACTION_TYPE
 
 
 def test_decode_receipt(arbitrum):

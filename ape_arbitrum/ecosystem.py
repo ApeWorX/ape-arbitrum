@@ -1,5 +1,5 @@
 import time
-from typing import Dict, Optional, Type, cast
+from typing import Dict, Optional, Tuple, Type, cast
 
 from ape.api.config import PluginConfig
 from ape.api.networks import LOCAL_NETWORK_NAME
@@ -10,9 +10,9 @@ from ape.types import TransactionSignature
 from ape.utils import DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT
 from ape_ethereum.ecosystem import Ethereum, ForkedNetworkConfig, NetworkConfig
 from ape_ethereum.transactions import (
+    AccessListTransaction,
     DynamicFeeTransaction,
     Receipt,
-    AccessListTransaction,
     StaticFeeTransaction,
     TransactionStatusEnum,
 )
@@ -146,7 +146,6 @@ class Arbitrum(Ethereum):
             :class:`~ape.api.transactions.TransactionAPI`
         """
 
-
         # Handle all aliases.
         tx_data = dict(kwargs)
         tx_data = _correct_key(
@@ -183,25 +182,25 @@ class Arbitrum(Ethereum):
         if "type" in tx_data:
             if tx_data["type"] is None:
                 # Explicit `None` means used default.
-                version = self.default_transaction_type
+                version = self.default_transaction_type.value
             elif isinstance(tx_data["type"], EthTransactionType):
-                version = tx_data["type"]
+                version = tx_data["type"].value
             elif isinstance(tx_data["type"], int):
-                version = TransactionType(tx_data["type"])
+                version = tx_data["type"]
             else:
                 # Using hex values or alike.
-                version = TransactionType(self.conversion_manager.convert(tx_data["type"], int))
+                version = self.conversion_manager.convert(tx_data["type"], int)
 
         elif "gas_price" in tx_data:
-            version = TransactionType.STATIC
+            version = EthTransactionType.STATIC.value
         elif "max_fee" in tx_data or "max_priority_fee" in tx_data:
-            version = TransactionType.DYNAMIC
+            version = EthTransactionType.DYNAMIC.value
         elif "access_list" in tx_data or "accessList" in tx_data:
-            version = TransactionType.ACCESS_LIST
+            version = EthTransactionType.ACCESS_LIST.value
         else:
-            version = self.default_transaction_type
+            version = self.default_transaction_type.value
 
-        tx_data["type"] = version.value
+        tx_data["type"] = version
 
         # This causes problems in pydantic for some reason.
         # NOTE: This must happen after deducing the tx type!
@@ -241,66 +240,6 @@ class Arbitrum(Ethereum):
             tx_data["gas"] = None
 
         return txn_class(**tx_data)
-
-        # transaction_types: Dict[int, Type[TransactionAPI]] = {
-        #     EthTransactionType.STATIC.value: StaticFeeTransaction,
-        #     EthTransactionType.DYNAMIC.value: DynamicFeeTransaction,
-        #     INTERNAL_TRANSACTION_TYPE: InternalTransaction,
-        # }
-        #
-        # if "type" in kwargs:
-        #     if kwargs["type"] is None:
-        #         # The Default is pre-EIP-1559.
-        #         version = self.default_transaction_type.value
-        #     elif not isinstance(kwargs["type"], int):
-        #         version = self.conversion_manager.convert(kwargs["type"], int)
-        #     else:
-        #         version = kwargs["type"]
-        #
-        # elif "gas_price" in kwargs:
-        #     version = EthTransactionType.STATIC.value
-        # else:
-        #     version = self.default_transaction_type.value
-        #
-        # kwargs["type"] = version
-        # txn_class = transaction_types[version]
-        #
-        # if "required_confirmations" not in kwargs or kwargs["required_confirmations"] is None:
-        #     # Attempt to use default required-confirmations from `ape-config.yaml`.
-        #     required_confirmations = 0
-        #     active_provider = self.network_manager.active_provider
-        #     if active_provider:
-        #         required_confirmations = active_provider.network.required_confirmations
-        #
-        #     kwargs["required_confirmations"] = required_confirmations
-        #
-        # if isinstance(kwargs.get("chainId"), str):
-        #     kwargs["chainId"] = int(kwargs["chainId"], 16)
-        #
-        # elif "chainId" not in kwargs and self.network_manager.active_provider is not None:
-        #     kwargs["chainId"] = self.provider.chain_id
-        #
-        # if "input" in kwargs:
-        #     kwargs["data"] = kwargs.pop("input")
-        #
-        # if all(field in kwargs for field in ("v", "r", "s")):
-        #     kwargs["signature"] = TransactionSignature(
-        #         v=kwargs["v"],
-        #         r=bytes(kwargs["r"]),
-        #         s=bytes(kwargs["s"]),
-        #     )
-        #
-        # if "max_priority_fee_per_gas" in kwargs:
-        #     kwargs["max_priority_fee"] = kwargs.pop("max_priority_fee_per_gas")
-        # if "max_fee_per_gas" in kwargs:
-        #     kwargs["max_fee"] = kwargs.pop("max_fee_per_gas")
-        #
-        # kwargs["gas"] = kwargs.pop("gas_limit", kwargs.get("gas"))
-        #
-        # if "value" in kwargs and not isinstance(kwargs["value"], int):
-        #     kwargs["value"] = self.conversion_manager.convert(kwargs["value"], int)
-        #
-        # return txn_class(**kwargs)
 
     def decode_receipt(self, data: dict) -> ReceiptAPI:
         """
@@ -343,3 +282,20 @@ class Arbitrum(Ethereum):
             txn_hash=txn_hash,
             transaction=self.create_transaction(**data),
         )
+
+
+def _correct_key(key: str, data: Dict, alt_keys: Tuple[str, ...]) -> Dict:
+    if key in data:
+        return data
+
+    # Check for alternative.
+    for possible_key in alt_keys:
+        if possible_key not in data:
+            continue
+
+        # Alt found: use it.
+        new_data = {k: v for k, v in data.items() if k not in alt_keys}
+        new_data[key] = data[possible_key]
+        return new_data
+
+    return data
