@@ -6,12 +6,6 @@ from ethpm_types import MethodABI
 from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, LOCAL_GAS_LIMIT, ArbitrumReceipt
 
 
-def test_gas_limit(arbitrum):
-    # NOTE: The reason we have a hard-coded gas limit is because
-    #   the block gas limit in Arbitrum is extremely high.
-    assert arbitrum.config.local.gas_limit == LOCAL_GAS_LIMIT
-
-
 @pytest.mark.parametrize(
     "tx_kwargs",
     [

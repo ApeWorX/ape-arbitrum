@@ -71,7 +71,7 @@ setup(
     url="https://github.com/ApeWorX/ape-arbitrum",
     include_package_data=True,
     install_requires=[
-        "eth-ape>=0.7.0,<0.8",
+        "eth-ape>=0.7.6,<0.8",
         "eth-pydantic-types",  # Use same version as eth-ape
         "ethpm-types",  # Use same version as eth-ape
     ],
