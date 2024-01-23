@@ -1,14 +1,11 @@
 import time
-from typing import Dict, Optional, Tuple, Type, cast
+from typing import ClassVar, Dict, Tuple, Type, cast
 
-from ape.api.config import PluginConfig
-from ape.api.networks import LOCAL_NETWORK_NAME
 from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, TransactionAPI
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
-from ape.types import TransactionSignature
-from ape.utils import DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT
-from ape_ethereum.ecosystem import Ethereum, ForkedNetworkConfig, NetworkConfig
+from ape.types import GasLimit, TransactionSignature
+from ape_ethereum.ecosystem import BaseEthereumConfig, Ethereum, NetworkConfig
 from ape_ethereum.transactions import (
     AccessListTransaction,
     DynamicFeeTransaction,
@@ -107,27 +104,12 @@ def _create_config(
     )
 
 
-def _create_local_config(default_provider: Optional[str] = None, use_fork: bool = False, **kwargs):
-    return _create_config(
-        block_time=0,
-        default_provider=default_provider,
-        gas_limit=LOCAL_GAS_LIMIT,
-        required_confirmations=0,
-        transaction_acceptance_timeout=DEFAULT_LOCAL_TRANSACTION_ACCEPTANCE_TIMEOUT,
-        cls=ForkedNetworkConfig if use_fork else NetworkConfig,
-        **kwargs,
-    )
-
-
-class ArbitrumConfig(PluginConfig):
+class ArbitrumConfig(BaseEthereumConfig):
+    DEFAULT_TRANSACTION_TYPE: ClassVar[int] = EthTransactionType.STATIC.value
+    DEFAULT_LOCAL_GAS_LIMIT: ClassVar[GasLimit] = LOCAL_GAS_LIMIT
     mainnet: NetworkConfig = _create_config()
-    mainnet_fork: ForkedNetworkConfig = _create_local_config(use_fork=True)
     goerli: NetworkConfig = _create_config()
-    goerli_fork: ForkedNetworkConfig = _create_local_config(use_fork=True)
     sepolia: NetworkConfig = _create_config()
-    sepolia_fork: ForkedNetworkConfig = _create_local_config(use_fork=True)
-    local: NetworkConfig = _create_local_config(default_provider="test")
-    default_network: str = LOCAL_NETWORK_NAME
 
 
 class Arbitrum(Ethereum):
