@@ -6,8 +6,6 @@ EXPECTED_OUTPUT = """
 arbitrum
 ├── mainnet
 │   └── geth  (default)
-├── goerli
-│   └── geth  (default)
 ├── sepolia
 │   └── geth  (default)
 └── local  (default)
@@ -49,7 +47,6 @@ def assert_rich_text(actual: str, expected: str):
 def test_networks(runner, cli, arbitrum):
     # Do this in case local env changed it.
     arbitrum.mainnet.set_default_provider("geth")
-    arbitrum.goerli.set_default_provider("geth")
     arbitrum.sepolia.set_default_provider("geth")
 
     result = runner.invoke(cli, ["networks", "list"])
