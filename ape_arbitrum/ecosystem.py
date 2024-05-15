@@ -1,5 +1,5 @@
 import time
-from typing import ClassVar, Dict, Tuple, Type, cast
+from typing import ClassVar, cast
 
 from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, TransactionAPI
 from ape.exceptions import ApeException, TransactionError
@@ -92,7 +92,7 @@ class ArbitrumReceipt(Receipt):
 def _create_config(
     required_confirmations: int = 1,
     block_time: int = 1,
-    cls: Type = NetworkConfig,
+    cls: type = NetworkConfig,
     **kwargs,
 ) -> NetworkConfig:
     return cls(
@@ -152,7 +152,7 @@ class Arbitrum(Ethereum):
             tx_data["data"] = b""
 
         # Deduce the transaction type.
-        transaction_types: Dict[int, Type[TransactionAPI]] = {
+        transaction_types: dict[int, type[TransactionAPI]] = {
             EthTransactionType.STATIC.value: StaticFeeTransaction,
             EthTransactionType.DYNAMIC.value: DynamicFeeTransaction,
             EthTransactionType.ACCESS_LIST.value: AccessListTransaction,
@@ -264,7 +264,7 @@ class Arbitrum(Ethereum):
         )
 
 
-def _correct_key(key: str, data: Dict, alt_keys: Tuple[str, ...]) -> Dict:
+def _correct_key(key: str, data: dict, alt_keys: tuple[str, ...]) -> dict:
     if key in data:
         return data
 
