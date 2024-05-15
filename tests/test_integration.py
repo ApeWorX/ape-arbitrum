@@ -4,12 +4,12 @@ from click.testing import CliRunner
 
 EXPECTED_OUTPUT = """
 arbitrum
+├── local  (default)
+│   └── test  (default)
 ├── mainnet
-│   └── geth  (default)
-├── sepolia
-│   └── geth  (default)
-└── local  (default)
-    └── test  (default)
+│   └── node  (default)
+└── sepolia
+    └── node  (default)
 """.strip()
 
 
@@ -46,8 +46,8 @@ def assert_rich_text(actual: str, expected: str):
 
 def test_networks(runner, cli, arbitrum):
     # Do this in case local env changed it.
-    arbitrum.mainnet.set_default_provider("geth")
-    arbitrum.sepolia.set_default_provider("geth")
+    arbitrum.mainnet.set_default_provider("node")
+    arbitrum.sepolia.set_default_provider("node")
 
-    result = runner.invoke(cli, ["networks", "list"])
+    result = runner.invoke(cli, ("networks", "list"))
     assert_rich_text(result.output, EXPECTED_OUTPUT)
