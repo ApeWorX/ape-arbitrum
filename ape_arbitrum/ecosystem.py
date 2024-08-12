@@ -4,7 +4,7 @@ from typing import ClassVar, cast
 from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, TransactionAPI
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
-from ape.types import GasLimit, TransactionSignature
+from ape.types import GasLimit, HexInt, TransactionSignature
 from ape_ethereum.ecosystem import BaseEthereumConfig, Ethereum, NetworkConfig
 from ape_ethereum.transactions import (
     AccessListTransaction,
@@ -40,6 +40,8 @@ class ApeArbitrumError(ApeException):
 
 
 class ArbitrumReceipt(Receipt):
+    gas_used_for_L1: HexInt = Field(default=0, alias="gasUsedForL1")
+
     def await_confirmations(self) -> "ReceiptAPI":
         """
         Overridden to handle skipping nonce-check for internal txns.
@@ -257,6 +259,7 @@ class Arbitrum(Ethereum):
             gas_limit=data.get("gas", data.get("gas_limit", data.get("gasLimit"))) or 0,
             gas_price=data.get("gas_price", data.get("gasPrice")) or 0,
             gas_used=data.get("gas_used", data.get("gasUsed")) or 0,
+            gasUsedForL1=data.get("gas_used_for_L1", data.get("gasUsedForL1")) or 0,
             logs=data.get("logs", []),
             status=status,
             txn_hash=txn_hash,

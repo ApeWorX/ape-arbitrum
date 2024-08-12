@@ -99,7 +99,10 @@ def test_decode_receipt(arbitrum):
         ),
         "status": 1,
         "l1BlockNumber": "0x11148fc",
-        "gasUsedForL1": "0x0",
+        "gasUsedForL1": "0x7",
     }
     actual = arbitrum.decode_receipt(data)
     assert isinstance(actual, ArbitrumReceipt)
+
+    # Check that the receipt decodes HexInt correctly
+    assert actual.gas_used_for_L1 == 7
