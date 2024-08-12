@@ -259,7 +259,7 @@ class Arbitrum(Ethereum):
             gas_limit=data.get("gas", data.get("gas_limit", data.get("gasLimit"))) or 0,
             gas_price=data.get("gas_price", data.get("gasPrice")) or 0,
             gas_used=data.get("gas_used", data.get("gasUsed")) or 0,
-            gas_used_for_L1=data.get("gas_used_for_L1", data.get("gasUsedForL1")) or 0,
+            gasUsedForL1=data.get("gas_used_for_L1", data.get("gasUsedForL1")) or 0,
             logs=data.get("logs", []),
             status=status,
             txn_hash=txn_hash,
