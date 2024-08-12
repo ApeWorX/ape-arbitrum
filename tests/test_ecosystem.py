@@ -103,3 +103,6 @@ def test_decode_receipt(arbitrum):
     }
     actual = arbitrum.decode_receipt(data)
     assert isinstance(actual, ArbitrumReceipt)
+
+    # Check that the receipt decodes HexInt correctly
+    assert actual.gas_used_for_L1 == 0

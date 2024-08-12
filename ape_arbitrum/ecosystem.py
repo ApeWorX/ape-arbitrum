@@ -40,7 +40,7 @@ class ApeArbitrumError(ApeException):
 
 
 class ArbitrumReceipt(Receipt):
-    gas_used_for_L1: HexInt
+    gas_used_for_L1: HexInt = Field(alias="gasUsedForL1")
 
     def await_confirmations(self) -> "ReceiptAPI":
         """
