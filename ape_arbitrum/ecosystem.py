@@ -31,7 +31,7 @@ LOCAL_GAS_LIMIT = 30_000_000
 
 
 class InternalTransaction(StaticFeeTransaction):
-    type: int = Field(INTERNAL_TRANSACTION_TYPE, exclude=True)
+    type: int = Field(default=INTERNAL_TRANSACTION_TYPE, exclude=True)
 
 
 class ApeArbitrumError(ApeException):
@@ -112,7 +112,6 @@ class ArbitrumConfig(BaseEthereumConfig):
     mainnet: NetworkConfig = _create_config()
     sepolia: NetworkConfig = _create_config()
     nova: NetworkConfig = _create_config()
-
 
 
 class Arbitrum(Ethereum):
