@@ -21,6 +21,7 @@ NETWORKS = {
     # chain_id, network_id
     "mainnet": (42161, 42161),
     "sepolia": (421614, 421614),
+    "nova": (42170, 42170),
 }
 INTERNAL_TRANSACTION_TYPE = 106
 
@@ -110,6 +111,8 @@ class ArbitrumConfig(BaseEthereumConfig):
     DEFAULT_LOCAL_GAS_LIMIT: ClassVar[GasLimit] = LOCAL_GAS_LIMIT
     mainnet: NetworkConfig = _create_config()
     sepolia: NetworkConfig = _create_config()
+    nova: NetworkConfig = _create_config()
+
 
 
 class Arbitrum(Ethereum):
