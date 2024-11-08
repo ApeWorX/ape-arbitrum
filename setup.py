@@ -12,7 +12,7 @@ extras_require = {
     ],
     "lint": [
         "black>=24.10.0,<25",  # Auto-formatter and linter
-        "mypy>=1.12.0,<2",  # Static type analyzer
+        "mypy>=1.13.0,<2",  # Static type analyzer
         "types-setuptools",  # Needed for mypy type shed
         "flake8>=7.1.1,<8",  # Style linter
         "flake8-breakpoint>=1.1.0,<2",  # Detect breakpoints left in code
