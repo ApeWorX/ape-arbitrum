@@ -106,3 +106,9 @@ def test_decode_receipt(arbitrum):
 
     # Check that the receipt decodes HexInt correctly
     assert actual.gas_used_for_L1 == 7
+
+
+def test_is_mainnet(arbitrum):
+    assert arbitrum.mainnet.is_mainnet
+    assert arbitrum.nova.is_mainnet
+    assert not arbitrum.sepolia.is_mainnet
