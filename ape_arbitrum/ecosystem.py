@@ -111,7 +111,7 @@ class ArbitrumConfig(BaseEthereumConfig):
     DEFAULT_LOCAL_GAS_LIMIT: ClassVar[GasLimit] = LOCAL_GAS_LIMIT
     mainnet: NetworkConfig = _create_config()
     sepolia: NetworkConfig = _create_config()
-    nova: NetworkConfig = _create_config()
+    nova: NetworkConfig = _create_config(is_mainnet=True)
 
 
 class Arbitrum(Ethereum):
