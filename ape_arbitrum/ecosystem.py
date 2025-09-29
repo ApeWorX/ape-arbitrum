@@ -5,6 +5,7 @@ from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, Transacti
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
 from ape.types import GasLimit, HexInt, TransactionSignature
+from ape.utils import DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER
 from ape_ethereum.ecosystem import BaseEthereumConfig, Ethereum, NetworkConfig
 from ape_ethereum.transactions import (
     AccessListTransaction,
@@ -98,10 +99,13 @@ def _create_config(
     cls: type = NetworkConfig,
     **kwargs,
 ) -> NetworkConfig:
+    # NOTE: Have to use a much larger base fee multiplier for Arbitrum because of max fee spikes.
+    base_fee_x = DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER * 2
     return cls(
         required_confirmations=required_confirmations,
         block_time=block_time,
         default_transaction_type=EthTransactionType.STATIC,
+        base_fee_multipler=DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER * 2,
         **kwargs,
     )
 
