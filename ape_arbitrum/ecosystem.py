@@ -102,7 +102,7 @@ def _create_config(
     return cls(
         required_confirmations=required_confirmations,
         block_time=block_time,
-        default_transaction_type=EthTransactionType.STATIC,
+        default_transaction_type=EthTransactionType.DYNAMIC,
         **kwargs,
     )
 

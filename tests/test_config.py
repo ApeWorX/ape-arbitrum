@@ -9,7 +9,7 @@ def test_gas_limit(arbitrum):
 
 
 def test_default_transaction_type(arbitrum):
-    assert arbitrum.config.mainnet.default_transaction_type == TransactionType.STATIC
+    assert arbitrum.config.mainnet.default_transaction_type == TransactionType.DYNAMIC
 
 
 def test_mainnet_fork_not_configured():
