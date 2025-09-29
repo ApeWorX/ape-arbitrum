@@ -49,13 +49,27 @@ def providers():
 
 
 def __getattr__(name: str):
-    import ape_arbitrum.ecosystem as module
+    if name == "Arbitrum":
+        from .ecosystem import Arbitrum
 
-    return getattr(module, name)
+        return Arbitrum
+
+    elif name == "ArbitrumConfig":
+        from .ecosystem import ArbitrumConfig
+
+        return ArbitrumConfig
+
+    elif name == "NETWORKS":
+        from .ecosystem import NETWORKS
+
+        return NETWORKS
+
+    else:
+        raise AttributeError(name)
 
 
 __all__ = [
-    "NETWORKS",
     "Arbitrum",
     "ArbitrumConfig",
+    "NETWORKS",
 ]

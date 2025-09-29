@@ -14,7 +14,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
 
         - name: Setup Python
           uses: actions/setup-python@v5
@@ -26,14 +26,11 @@ jobs:
             python -m pip install --upgrade pip
             pip install .[lint]
 
-        - name: Run Black
-          run: black --check .
+        - name: Run Ruff Lint
+          run: ruff check .
 
-        - name: Run isort
-          run: isort --check-only .
-
-        - name: Run flake8
-          run: flake8 .
+        - name: Run Ruff Format
+          run: ruff format --check .
 
         - name: Run mdformat
           run: mdformat . --check
@@ -42,7 +39,7 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
 
         - name: Setup Python
           uses: actions/setup-python@v5
@@ -66,7 +63,7 @@ jobs:
                 python-version: [3.9, "3.10", "3.11", "3.12"]
 
         steps:
-        - uses: actions/checkout@v4
+        - uses: actions/checkout@v5
 
         - name: Setup Python
           uses: actions/setup-python@v5
@@ -89,7 +86,7 @@ jobs:
 #            fail-fast: true
 #
 #        steps:
-#        - uses: actions/checkout@v4
+#        - uses: actions/checkout@v5
 #
 #        - name: Setup Python
 #          uses: actions/setup-python@v5
