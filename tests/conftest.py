@@ -1,5 +1,6 @@
-import ape
 import pytest
+
+import ape
 
 
 @pytest.fixture(autouse=True)

@@ -1,6 +1,9 @@
 import time
 from typing import ClassVar, cast
 
+from eth_pydantic_types import HexBytes
+from pydantic.fields import Field
+
 from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, TransactionAPI
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
@@ -14,8 +17,6 @@ from ape_ethereum.transactions import (
     TransactionStatusEnum,
 )
 from ape_ethereum.transactions import TransactionType as EthTransactionType
-from eth_pydantic_types import HexBytes
-from pydantic.fields import Field
 
 NETWORKS = {
     # chain_id, network_id

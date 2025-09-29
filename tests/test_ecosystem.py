@@ -1,13 +1,9 @@
 import pytest
-from ape_ethereum.transactions import TransactionType
 from eth_pydantic_types import HexBytes
 from ethpm_types import MethodABI
 
-from ape_arbitrum.ecosystem import (
-    INTERNAL_TRANSACTION_TYPE,
-    LOCAL_GAS_LIMIT,
-    ArbitrumReceipt,
-)
+from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, LOCAL_GAS_LIMIT, ArbitrumReceipt
+from ape_ethereum.transactions import TransactionType
 
 
 @pytest.mark.parametrize(
