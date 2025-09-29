@@ -3,7 +3,11 @@ from ape_ethereum.transactions import TransactionType
 from eth_pydantic_types import HexBytes
 from ethpm_types import MethodABI
 
-from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, LOCAL_GAS_LIMIT, ArbitrumReceipt
+from ape_arbitrum.ecosystem import (
+    INTERNAL_TRANSACTION_TYPE,
+    LOCAL_GAS_LIMIT,
+    ArbitrumReceipt,
+)
 
 
 @pytest.mark.parametrize(
@@ -48,7 +52,11 @@ def test_create_transaction_internal(arbitrum):
 
 @pytest.mark.parametrize(
     "tx_type",
-    (TransactionType.STATIC.value, TransactionType.DYNAMIC.value, INTERNAL_TRANSACTION_TYPE),
+    (
+        TransactionType.STATIC.value,
+        TransactionType.DYNAMIC.value,
+        INTERNAL_TRANSACTION_TYPE,
+    ),
 )
 def test_encode_transaction(tx_type, arbitrum, eth_tester_provider):
     abi = MethodABI.model_validate(

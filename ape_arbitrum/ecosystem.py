@@ -5,7 +5,6 @@ from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, Transacti
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
 from ape.types import GasLimit, HexInt, TransactionSignature
-from ape.utils import DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER
 from ape_ethereum.ecosystem import BaseEthereumConfig, Ethereum, NetworkConfig
 from ape_ethereum.transactions import (
     AccessListTransaction,
@@ -99,13 +98,10 @@ def _create_config(
     cls: type = NetworkConfig,
     **kwargs,
 ) -> NetworkConfig:
-    # NOTE: Have to use a much larger base fee multiplier for Arbitrum because of max fee spikes.
-    base_fee_x = DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER * 2
     return cls(
         required_confirmations=required_confirmations,
         block_time=block_time,
-        default_transaction_type=EthTransactionType.STATIC,
-        base_fee_multipler=DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER * 2,
+        default_transaction_type=EthTransactionType.DYNAMIC,
         **kwargs,
     )
 
@@ -147,7 +143,14 @@ class Arbitrum(Ethereum):
         tx_data = _correct_key(
             "type",
             tx_data,
-            ("txType", "tx_type", "txnType", "txn_type", "transactionType", "transaction_type"),
+            (
+                "txType",
+                "tx_type",
+                "txnType",
+                "txn_type",
+                "transactionType",
+                "transaction_type",
+            ),
         )
 
         # Handle unique value specifications, such as "1 ether".
@@ -239,7 +242,13 @@ class Arbitrum(Ethereum):
             status = TransactionStatusEnum(status)
 
         txn_hash = None
-        hash_key_choices = ("hash", "txHash", "txnHash", "transactionHash", "transaction_hash")
+        hash_key_choices = (
+            "hash",
+            "txHash",
+            "txnHash",
+            "transactionHash",
+            "transaction_hash",
+        )
         for choice in hash_key_choices:
             if choice in data:
                 txn_hash = data[choice]
