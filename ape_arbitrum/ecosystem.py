@@ -143,7 +143,14 @@ class Arbitrum(Ethereum):
         tx_data = _correct_key(
             "type",
             tx_data,
-            ("txType", "tx_type", "txnType", "txn_type", "transactionType", "transaction_type"),
+            (
+                "txType",
+                "tx_type",
+                "txnType",
+                "txn_type",
+                "transactionType",
+                "transaction_type",
+            ),
         )
 
         # Handle unique value specifications, such as "1 ether".
@@ -235,7 +242,13 @@ class Arbitrum(Ethereum):
             status = TransactionStatusEnum(status)
 
         txn_hash = None
-        hash_key_choices = ("hash", "txHash", "txnHash", "transactionHash", "transaction_hash")
+        hash_key_choices = (
+            "hash",
+            "txHash",
+            "txnHash",
+            "transactionHash",
+            "transaction_hash",
+        )
         for choice in hash_key_choices:
             if choice in data:
                 txn_hash = data[choice]
