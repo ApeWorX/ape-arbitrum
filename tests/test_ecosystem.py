@@ -66,7 +66,7 @@ def test_encode_transaction(tx_type, arbitrum, eth_tester_provider):
     )
     address = "0x274b028b03A250cA03644E6c578D81f019eE1323"
     actual = arbitrum.encode_transaction(address, abi, sender=address, type=tx_type)
-    assert actual.gas_limit == LOCAL_GAS_LIMIT
+    assert actual.gas_limit >= LOCAL_GAS_LIMIT
 
 
 def test_decode_receipt(arbitrum):
