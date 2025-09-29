@@ -1,6 +1,5 @@
-from ape_ethereum.transactions import TransactionType
-
 from ape_arbitrum.ecosystem import LOCAL_GAS_LIMIT, ArbitrumConfig
+from ape_ethereum.transactions import TransactionType
 
 
 def test_gas_limit(arbitrum):
