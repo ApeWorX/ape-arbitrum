@@ -8,6 +8,7 @@ from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, Transacti
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
 from ape.types import GasLimit, HexInt, TransactionSignature
+from ape.utils.misc import DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER
 from ape_ethereum.ecosystem import BaseEthereumConfig, Ethereum, NetworkConfig
 from ape_ethereum.transactions import (
     AccessListTransaction,
@@ -103,6 +104,7 @@ def _create_config(
         required_confirmations=required_confirmations,
         block_time=block_time,
         default_transaction_type=EthTransactionType.DYNAMIC,
+        base_fee_multiplier=DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER,
         **kwargs,
     )
 

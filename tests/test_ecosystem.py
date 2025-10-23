@@ -2,6 +2,7 @@ import pytest
 from eth_pydantic_types import HexBytes
 from ethpm_types import MethodABI
 
+from ape.utils.misc import DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER
 from ape_arbitrum.ecosystem import INTERNAL_TRANSACTION_TYPE, LOCAL_GAS_LIMIT, ArbitrumReceipt
 from ape_ethereum.transactions import TransactionType
 
@@ -116,3 +117,7 @@ def test_is_mainnet(arbitrum):
     assert arbitrum.mainnet.is_mainnet
     assert arbitrum.nova.is_mainnet
     assert not arbitrum.sepolia.is_mainnet
+
+
+def test_default_base_multiplier(arbitrum):
+    assert arbitrum.mainnet.config.base_fee_multiplier == DEFAULT_LIVE_NETWORK_BASE_FEE_MULTIPLIER
