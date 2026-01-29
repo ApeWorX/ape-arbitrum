@@ -1,9 +1,6 @@
 import time
 from typing import ClassVar, cast
 
-from eth_pydantic_types import HexBytes
-from pydantic.fields import Field
-
 from ape.api.transactions import ConfirmationsProgressBar, ReceiptAPI, TransactionAPI
 from ape.exceptions import ApeException, TransactionError
 from ape.logging import logger
@@ -16,8 +13,10 @@ from ape_ethereum.transactions import (
     Receipt,
     StaticFeeTransaction,
     TransactionStatusEnum,
+    TransactionType as EthTransactionType,
 )
-from ape_ethereum.transactions import TransactionType as EthTransactionType
+from eth_pydantic_types import HexBytes
+from pydantic.fields import Field
 
 NETWORKS = {
     # chain_id, network_id
@@ -120,7 +119,7 @@ class ArbitrumConfig(BaseEthereumConfig):
 class Arbitrum(Ethereum):
     @property
     def config(self) -> ArbitrumConfig:  # type: ignore[override]
-        return cast(ArbitrumConfig, self.config_manager.get_config("arbitrum"))
+        return cast("ArbitrumConfig", self.config_manager.get_config("arbitrum"))
 
     def create_transaction(self, **kwargs) -> TransactionAPI:
         """

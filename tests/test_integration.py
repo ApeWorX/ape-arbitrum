@@ -1,7 +1,6 @@
 import pytest
-from click.testing import CliRunner
-
 from ape._cli import cli as ape_cli
+from click.testing import CliRunner
 
 EXPECTED_OUTPUT = """
 arbitrum
