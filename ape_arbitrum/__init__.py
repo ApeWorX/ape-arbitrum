@@ -54,18 +54,17 @@ def __getattr__(name: str):
 
         return Arbitrum
 
-    elif name == "ArbitrumConfig":
+    if name == "ArbitrumConfig":
         from .ecosystem import ArbitrumConfig
 
         return ArbitrumConfig
 
-    elif name == "NETWORKS":
+    if name == "NETWORKS":
         from .ecosystem import NETWORKS
 
         return NETWORKS
 
-    else:
-        raise AttributeError(name)
+    raise AttributeError(name)
 
 
 __all__ = [
