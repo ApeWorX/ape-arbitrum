@@ -116,7 +116,9 @@ def test_decode_receipt(arbitrum):
 def test_is_mainnet(arbitrum):
     assert arbitrum.mainnet.is_mainnet
     assert arbitrum.nova.is_mainnet
+    assert arbitrum.robinhood.is_mainnet
     assert not arbitrum.sepolia.is_mainnet
+    assert not arbitrum.robinhood_testnet.is_mainnet
 
 
 def test_default_base_multiplier(arbitrum):

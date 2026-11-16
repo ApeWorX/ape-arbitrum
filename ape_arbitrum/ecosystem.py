@@ -23,6 +23,8 @@ NETWORKS = {
     "mainnet": (42161, 42161),
     "sepolia": (421614, 421614),
     "nova": (42170, 42170),
+    "robinhood": (4663, 4663),
+    "robinhood-testnet": (46630, 46630),
 }
 INTERNAL_TRANSACTION_TYPE = 106
 
@@ -114,6 +116,8 @@ class ArbitrumConfig(BaseEthereumConfig):
     mainnet: NetworkConfig = _create_config()
     sepolia: NetworkConfig = _create_config()
     nova: NetworkConfig = _create_config(is_mainnet=True)
+    robinhood: NetworkConfig = _create_config(is_mainnet=True)
+    robinhood_testnet: NetworkConfig = _create_config()
 
 
 class Arbitrum(Ethereum):
