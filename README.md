@@ -51,6 +51,14 @@ Installing this plugin adds support for the Arbitrum ecosystem:
 ape console --network arbitrum:mainnet
 ```
 
+It also supports Arbitrum Nova and Robinhood Chain:
+
+```bash
+ape console --network arbitrum:nova
+ape console --network arbitrum:robinhood
+ape console --network arbitrum:robinhood-testnet
+```
+
 ## Development
 
 This project is in development and should be considered a beta.
